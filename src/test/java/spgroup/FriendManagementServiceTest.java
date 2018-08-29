@@ -107,4 +107,44 @@ public class FriendManagementServiceTest {
         List<String> friends = friendManagementService.getFriendEmails(firstUserEmail);
         assertThat(friends.get(0)).isEqualTo(secondUserEmail);
     }
+
+    //Common Friends Test
+    @Test
+    public void testCommonFriendNull() {
+        List<String> commonFriends = null;
+        try {
+            commonFriends = friendManagementService.getCommonFriends(null, null);
+        }catch (IllegalArgumentException e) {
+            commonFriends = null;
+        }
+        assertThat(commonFriends).isNull();
+    }
+
+    @Test
+    public void testCommonFriendWringEmail() {
+        List<String> commonFriends = null;
+        try {
+            commonFriends = friendManagementService.getCommonFriends("wrongemail", "wrongemail2");
+        }catch (IllegalArgumentException e) {
+            commonFriends = null;
+        }
+        assertThat(commonFriends).isNull();
+    }
+
+    @Test
+    public void testCommonFriendZeroFriend() {
+        List<String> commonFriends = friendManagementService.getCommonFriends(firstUserEmail, secondUserEmail);
+        assertThat(commonFriends).isNull();
+    }
+
+    @Test
+    public void testCommonFriendData() {
+        String dummyEmail = "dummy@gmail.com";
+        friendManagementService.connectFriends(firstUserEmail, dummyEmail);
+        friendManagementService.connectFriends(secondUserEmail, dummyEmail);
+        List<String> commonFriends = friendManagementService.getCommonFriends(firstUserEmail, secondUserEmail);
+        assertThat(commonFriends.get(0)).isEqualTo(dummyEmail);
+    }
+
+
 }

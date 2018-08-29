@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class FriendManagementService {
@@ -59,6 +60,24 @@ public class FriendManagementService {
     public List<String> getFriendEmails(String userEmail) {
         validateGetFriendEmailsData(userEmail);
         return friendsMap.get(userEmail);
+    }
+
+    public List<String> getCommonFriends(String userEmail1, String userEmail2) {
+        validateConnectFriendsData(userEmail1, userEmail2);
+        if(userEmail1.equals(userEmail2)) {
+            logger.info("[CONNECT_FRIENDS] [%s] %s", userEmail1, "both emails should be different.");
+            return friendsMap.get(userEmail1);
+        }
+
+        List<String> user1Friends = friendsMap.get(userEmail1);
+        List<String> user2Friends = friendsMap.get(userEmail2);
+
+        return getCommonData(user1Friends, user2Friends);
+    }
+
+    private List<String> getCommonData(List<String> list1, List<String> list2) {
+        if(list1 == null || list2 == null) return null;
+        return list1.stream().filter(list2::contains).collect(Collectors.toList());
     }
 
 }
