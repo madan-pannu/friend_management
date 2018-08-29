@@ -1,4 +1,4 @@
-package com.spgroup.friend_management;
+package spgroup;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
