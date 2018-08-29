@@ -19,8 +19,8 @@ public class FriendManagementService {
 
     private void validateConnectFriendsData(String userEmail1, String userEmail2) {
         if(userEmail1 == null || userEmail2 == null) throw new  IllegalArgumentException("User email cannot be null");
-        if(!isEmail(userEmail1)) throw new IllegalArgumentException(userEmail1 + " is not a valid email.");
-        if(!isEmail(userEmail2)) throw new IllegalArgumentException(userEmail2 + " is not a valid email.");
+        if(!isEmail(userEmail1)) throw new IllegalArgumentException("'"+userEmail1+"' is not a valid email.");
+        if(!isEmail(userEmail2)) throw new IllegalArgumentException("'"+userEmail2+"' is not a valid email.");
 
     }
 
@@ -49,6 +49,16 @@ public class FriendManagementService {
         java.util.regex.Pattern p = java.util.regex.Pattern.compile(ePattern);
         java.util.regex.Matcher m = p.matcher(email);
         return m.matches();
+    }
+
+    private void validateGetFriendEmailsData(String userEmail) {
+        if(null == userEmail) throw new IllegalArgumentException("UserEmail cannot be null");
+        if(!isEmail(userEmail)) throw new IllegalArgumentException("'"+userEmail+"' is not a valid email.");
+    }
+
+    public List<String> getFriendEmails(String userEmail) {
+        validateGetFriendEmailsData(userEmail);
+        return friendsMap.get(userEmail);
     }
 
 }

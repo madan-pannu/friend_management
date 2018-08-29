@@ -1,13 +1,11 @@
 package spgroup.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import spgroup.common.Result;
 import spgroup.service.FriendManagementService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +38,23 @@ public class FriendManagementController {
 
         Result result = new Result();
         result.setSuccess(isConncted);
+        return result;
+    }
+
+
+    @RequestMapping(
+            value = "/fetch_friends",
+            method = RequestMethod.GET)
+    public Result getFriends(@RequestParam(name="userEmail", required=true)  String userEmail) {
+        List<String> friends = friendManagementService.getFriendEmails(userEmail);
+        Result result = new Result();
+        result.setSuccess(true);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("friends", friends);
+        map.put("count", friends == null ? 0 : friends.size());
+
+        result.setData(map);
         return result;
     }
 
