@@ -11,7 +11,9 @@ import static spgroup.common.Util.isEmail;
 @Component
 public class BlockEmailService {
 
-    Map<String, List<String>> blockEmailMap = new HashMap<>();
+    private Map<String, List<String>> blockEmailFrom = new HashMap<>();
+    private Map<String, List<String>> blockEmailTo = new HashMap<>();
+
     Logger logger = LoggerFactory.getLogger(BlockEmailService.class);
 
 
@@ -23,8 +25,12 @@ public class BlockEmailService {
             return false;
         }
 
-        blockEmailMap.putIfAbsent(requestor, new ArrayList<>());
-        blockEmailMap.get(requestor).add(target);
+        blockEmailFrom.putIfAbsent(requestor, new ArrayList<>());
+        blockEmailFrom.get(requestor).add(target);
+
+        blockEmailTo.putIfAbsent(target, new ArrayList<>());
+        blockEmailTo.get(target).add(requestor);
+
         return true;
 
     }
@@ -36,9 +42,18 @@ public class BlockEmailService {
     }
 
     public boolean isEmailBlocked(String requestor, String blockedEmail) {
-        List<String> blockedEmailList = blockEmailMap.get(requestor);
+        List<String> blockedEmailList = blockEmailFrom.get(requestor);
         if(blockedEmailList == null) return false;
         Optional<String> optional = blockedEmailList.stream().filter(blockedEmail::equals).findFirst();
         return optional.isPresent();
+    }
+
+    public List<String> getBlockedEmailTo(String email) {
+        return blockEmailTo.get(email);
+    }
+
+    public void clear() {
+        blockEmailTo.clear();
+        blockEmailFrom.clear();
     }
 }

@@ -50,14 +50,18 @@ public class FriendManagementController {
 
     @RequestMapping(
             value = "/fetch_friends",
-            method = RequestMethod.GET)
-    public Result getFriends(@RequestParam(name="email", required=true)  String userEmail) {
-        List<String> friends = friendManagementService.getFriendEmails(userEmail);
+            method = RequestMethod.POST)
+    public Result getFriends(@RequestBody Map<String, String> emailPayload) {
+
+        if(null == emailPayload) throw new IllegalArgumentException("Missing EemailPayload info.");
+        if(!emailPayload.containsKey("email")) throw new IllegalArgumentException("Missing email info");
+
+        List<String> friends = friendManagementService.getFriendEmails(emailPayload.get("email"));
         Result result = new Result();
         result.setSuccess(true);
 
         Map<String, Object> map = new HashMap<>();
-        if(friends != null) {
+        if(friends == null) {
             map.put("count", 0);
         } else {
             map.put("count", friends.size());
@@ -70,7 +74,7 @@ public class FriendManagementController {
 
     @RequestMapping(
             value = "/fetch_common_friends",
-            method = RequestMethod.GET)
+            method = RequestMethod.POST)
     public Result getCommonFriends(@RequestBody Map<String, List<String>> emails) {
 
 
@@ -89,7 +93,7 @@ public class FriendManagementController {
         result.setSuccess(true);
 
         Map<String, Object> map = new HashMap<>();
-        if(commonFriends != null) {
+        if(commonFriends == null) {
             map.put("count", 0);
         } else {
             map.put("count", commonFriends.size());
@@ -117,7 +121,6 @@ public class FriendManagementController {
 
     }
 
-
     @RequestMapping(
             value = "/block_email",
             method = RequestMethod.POST)
@@ -135,5 +138,24 @@ public class FriendManagementController {
 
     }
 
+    @RequestMapping(
+            value = "/fetch_update_emails",
+            method = RequestMethod.POST)
+    public Result fetchSubscribedEmails(@RequestBody Map<String, String> updateEmailsPayload) {
+        //Validate data
+        if(null == updateEmailsPayload) throw new IllegalArgumentException("Missing UpdateEmailsPayload info.");
+        if(!updateEmailsPayload.containsKey("sender")) throw new IllegalArgumentException("Missing sender info");
+
+
+        //validate content starts
+        List<String> updateEmailList = friendManagementService.getUpdateEmailList(updateEmailsPayload.get("sender"), updateEmailsPayload.get("text"));
+        Result result = new Result();
+        result.setSuccess(true);
+        Map<String, Object> map = new HashMap<>();
+        map.put("recipients", updateEmailList);
+        result.setData(map);
+        return result;
+
+    }
 
 }

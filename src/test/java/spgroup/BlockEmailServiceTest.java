@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import spgroup.service.BlockEmailService;
@@ -15,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 public class BlockEmailServiceTest {
 
+    @Autowired
     private BlockEmailService blockEmailService;
 
     private String firstUserEmail = "user1@gmail.com";
@@ -22,13 +24,11 @@ public class BlockEmailServiceTest {
 
     @Before
     public void setup() {
-        //TODO - Handle Intialization from spring
-        blockEmailService = new BlockEmailService();
     }
 
     @After
     public void tearDown(){
-        blockEmailService = null;
+        blockEmailService.clear();
     }
 
     //Block email test

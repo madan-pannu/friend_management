@@ -4,9 +4,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import spgroup.service.BlockEmailService;
 import spgroup.service.FriendManagementService;
+import spgroup.service.SubscriptionService;
 
 import java.util.List;
 
@@ -16,20 +19,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 public class FriendManagementServiceTest {
 
+    @Autowired
     private FriendManagementService friendManagementService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
+
+    @Autowired
+    private BlockEmailService blockEmailService;
 
     private String firstUserEmail = "user1@gmail.com";
     private String secondUserEmail = "user2@gmail.com";
 
     @Before
     public void setup() {
-        //TODO - Handle Intialization from spring
-        friendManagementService = new FriendManagementService();
     }
 
     @After
     public void tearDown(){
-        friendManagementService = null;
+        friendManagementService.clear();
+        subscriptionService.clear();
+        blockEmailService.clear();
     }
 
 
@@ -121,7 +131,7 @@ public class FriendManagementServiceTest {
     }
 
     @Test
-    public void testCommonFriendWringEmail() {
+    public void testCommonFriendWrongEmail() {
         List<String> commonFriends = null;
         try {
             commonFriends = friendManagementService.getCommonFriends("wrongemail", "wrongemail2");
@@ -143,8 +153,75 @@ public class FriendManagementServiceTest {
         friendManagementService.connectFriends(firstUserEmail, "dummy@gmail.com");
         friendManagementService.connectFriends(secondUserEmail, "dummy@gmail.com");
         List<String> commonFriends = friendManagementService.getCommonFriends(firstUserEmail, secondUserEmail);
-        assertThat(commonFriends.get(0)).isEqualTo("dummy");
+        assertThat(commonFriends.get(0)).isEqualTo("dummy@gmail.com");
     }
 
+
+    //Test update email list
+    @Test
+    public void testGetUpdateEmailListNull() {
+        List<String> updateEmailList = null;
+        try {
+            updateEmailList = friendManagementService.getUpdateEmailList(null, null);
+        } catch (IllegalArgumentException e) {
+            updateEmailList = null;
+        }
+        assertThat(updateEmailList).isEmpty();
+    }
+
+    @Test
+    public void testGetUpdateEmailListWrongData() {
+        List<String> updateEmailList = null;
+        try {
+            updateEmailList = friendManagementService.getUpdateEmailList("user", "user test");
+        } catch (IllegalArgumentException e) {
+            updateEmailList = null;
+        }
+        assertThat(updateEmailList).isEmpty();
+    }
+
+    @Test
+    public void testGetUpdateEmailListFriendsEmail() {
+        friendManagementService.connectFriends(firstUserEmail, secondUserEmail);
+        List<String> updateEmailList = friendManagementService.getUpdateEmailList(firstUserEmail, "random text");
+        assertThat(updateEmailList).isNotEmpty();
+        assertThat(updateEmailList.get(0)).isEqualTo(secondUserEmail);
+    }
+
+    @Test
+    public void testGetUpdateEmailListFriendsEmailWithText() {
+        String thirduserEmail = "user3@gmail.com";
+        friendManagementService.connectFriends(firstUserEmail, secondUserEmail);
+        List<String> updateEmailList = friendManagementService.getUpdateEmailList(firstUserEmail, "random text "+thirduserEmail);
+        assertThat(updateEmailList).isNotEmpty();
+        assertThat(updateEmailList.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void testGetUpdateEmailListSubscribedEmail() {
+        subscriptionService.subscribe(secondUserEmail, firstUserEmail);
+        List<String> updateEmailList = friendManagementService.getUpdateEmailList(firstUserEmail, "random text");
+        assertThat(updateEmailList).isNotEmpty();
+        assertThat(updateEmailList.get(0)).isEqualTo(secondUserEmail);
+    }
+
+    @Test
+    public void testGetUpdateEmailListSubscribedEmailWithText() {
+        String thirduserEmail = "user3@gmail.com";
+        subscriptionService.subscribe(secondUserEmail, firstUserEmail);
+        List<String> updateEmailList = friendManagementService.getUpdateEmailList(firstUserEmail, "random text "+thirduserEmail);
+        assertThat(updateEmailList).isNotEmpty();
+        assertThat(updateEmailList.size()).isEqualTo(2);
+        assertThat(updateEmailList.get(0)).isEqualTo(secondUserEmail);
+        assertThat(updateEmailList.get(1)).isEqualTo(thirduserEmail);
+    }
+
+    @Test
+    public void testGetUpdateEmailListSubscribedEmailWithTextWithoutBLock() {
+        subscriptionService.subscribe(secondUserEmail, firstUserEmail);
+        blockEmailService.blockEmail(secondUserEmail, firstUserEmail);
+        List<String> updateEmailList = friendManagementService.getUpdateEmailList(firstUserEmail, "random text ");
+        assertThat(updateEmailList).isEmpty();
+    }
 
 }

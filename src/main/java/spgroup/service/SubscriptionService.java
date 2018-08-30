@@ -15,11 +15,11 @@ import static spgroup.common.Util.isEmail;
 @Component
 public class SubscriptionService {
 
-    Map<String, List<String>> subscriptionMap = new HashMap<>();
-    Logger logger = LoggerFactory.getLogger(SubscriptionService.class);
+    private Map<String, List<String>> subscriptionMap = new HashMap<>();
+    private Logger logger = LoggerFactory.getLogger(SubscriptionService.class);
 
     @Autowired
-    BlockEmailService blockEmailService;
+    private BlockEmailService blockEmailService;
 
     private void validateSubscribeData(String requestor, String target) {
         if(requestor == null || target == null) throw new  IllegalArgumentException("User email cannot be null");
@@ -35,12 +35,12 @@ public class SubscriptionService {
             return false;
         }
 
-        if(blockEmailService.blockEmail(requestor, target)) {
+        if(blockEmailService.isEmailBlocked(requestor, target)) {
             logger.info(requestor+" has blocked "+ target);
             return false;
         }
 
-        if(blockEmailService.blockEmail(target, requestor)) {
+        if(blockEmailService.isEmailBlocked(target, requestor)) {
             logger.info(target+" has blocked "+ requestor);
             return false;
         }
@@ -52,6 +52,14 @@ public class SubscriptionService {
         subscriptionMap.get(target).add(requestor);
 
         return true;
+    }
+
+    public List<String> getSubscribedList(String target) {
+        return subscriptionMap.get(target);
+    }
+
+    public void clear() {
+        subscriptionMap.clear();
     }
 
 }

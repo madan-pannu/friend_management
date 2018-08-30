@@ -4,11 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import spgroup.common.Util;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static spgroup.common.Util.isEmail;
@@ -22,6 +20,9 @@ public class FriendManagementService {
 
     @Autowired
     BlockEmailService blockEmailService;
+
+    @Autowired
+    SubscriptionService subscriptionService;
 
 
     private void validateConnectFriendsData(String userEmail1, String userEmail2) {
@@ -40,12 +41,12 @@ public class FriendManagementService {
             return false;
         }
 
-        if(blockEmailService.blockEmail(userEmail1, userEmail2)) {
+        if(blockEmailService.isEmailBlocked(userEmail1, userEmail2)) {
             logger.info(userEmail1+" has blocked "+ userEmail2);
             return false;
         }
 
-        if(blockEmailService.blockEmail(userEmail2, userEmail1)) {
+        if(blockEmailService.isEmailBlocked(userEmail2, userEmail1)) {
             logger.info(userEmail2+" has blocked "+ userEmail1);
             return false;
         }
@@ -91,6 +92,32 @@ public class FriendManagementService {
         return list1.stream().filter(list2::contains).collect(Collectors.toList());
     }
 
+
+    public List<String> getUpdateEmailList(String requestor, String text) {
+        List<String> updateEmailList = new ArrayList<>();
+
+        List<String> friendsList = friendsMap.get(requestor);
+        if(friendsList != null) updateEmailList.addAll(friendsList);
+
+        List<String> subscribedList = subscriptionService.getSubscribedList(requestor);
+        if(subscribedList != null) updateEmailList.addAll(subscribedList);
+
+        List<String> mentionedEmailsList = getEmailsFromText(text);
+        if(mentionedEmailsList != null) updateEmailList.addAll(mentionedEmailsList);
+
+        return updateEmailList.stream().filter(userEmail -> !blockEmailService.isEmailBlocked(userEmail, requestor)).collect(Collectors.toList());
+
+    }
+
+    private List<String> getEmailsFromText(String text) {
+        if(text == null) return null;
+        return Arrays.stream(text.split(" ")).filter(Util::isEmail).distinct().collect(Collectors.toList());
+    }
+
+
+    public void clear() {
+        friendsMap.clear();
+    }
 
 
 
