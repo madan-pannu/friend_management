@@ -139,11 +139,11 @@ public class FriendManagementServiceTest {
 
     @Test
     public void testCommonFriendData() {
-        String dummyEmail = "dummy@gmail.com";
-        friendManagementService.connectFriends(firstUserEmail, dummyEmail);
-        friendManagementService.connectFriends(secondUserEmail, dummyEmail);
+
+        friendManagementService.connectFriends(firstUserEmail, "dummy@gmail.com");
+        friendManagementService.connectFriends(secondUserEmail, "dummy@gmail.com");
         List<String> commonFriends = friendManagementService.getCommonFriends(firstUserEmail, secondUserEmail);
-        assertThat(commonFriends.get(0)).isEqualTo(dummyEmail);
+        assertThat(commonFriends.get(0)).isEqualTo("dummy");
     }
 
 

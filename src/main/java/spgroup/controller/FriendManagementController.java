@@ -3,7 +3,9 @@ package spgroup.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import spgroup.common.Result;
+import spgroup.service.BlockEmailService;
 import spgroup.service.FriendManagementService;
+import spgroup.service.SubscriptionService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +18,11 @@ public class FriendManagementController {
     @Autowired
     FriendManagementService friendManagementService;
 
+    @Autowired
+    SubscriptionService subscriptionService;
 
+    @Autowired
+    BlockEmailService blockEmailService;
 
     @RequestMapping(
             value = "/connect_friends",
@@ -93,5 +99,41 @@ public class FriendManagementController {
         result.setData(map);
         return result;
     }
+
+    @RequestMapping(
+            value = "/subscribe_email",
+            method = RequestMethod.POST)
+    public Result subscribeEmail(@RequestBody Map<String, String> subscriptionPayload) {
+        //Validate data
+        if(null == subscriptionPayload) throw new IllegalArgumentException("Missing SubscriptionPayload info.");
+        if(!subscriptionPayload.containsKey("requestor")) throw new IllegalArgumentException("Missing Requestor info");
+        if(!subscriptionPayload.containsKey("target")) throw new IllegalArgumentException("Missing Requestor info");
+
+        //validate content starts
+        boolean isSubscribed = subscriptionService.subscribe(subscriptionPayload.get("requestor"), subscriptionPayload.get("target"));
+        Result result = new Result();
+        result.setSuccess(isSubscribed);
+        return result;
+
+    }
+
+
+    @RequestMapping(
+            value = "/block_email",
+            method = RequestMethod.POST)
+    public Result blockEmail(@RequestBody Map<String, String> blockEmailload) {
+        //Validate data
+        if(null == blockEmailload) throw new IllegalArgumentException("Missing SubscriptionPayload info.");
+        if(!blockEmailload.containsKey("requestor")) throw new IllegalArgumentException("Missing Requestor info");
+        if(!blockEmailload.containsKey("target")) throw new IllegalArgumentException("Missing Requestor info");
+
+        //validate content starts
+        boolean isBlocked = blockEmailService.blockEmail(blockEmailload.get("requestor"), blockEmailload.get("target"));
+        Result result = new Result();
+        result.setSuccess(isBlocked);
+        return result;
+
+    }
+
 
 }

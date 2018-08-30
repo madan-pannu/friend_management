@@ -2,14 +2,16 @@ package spgroup.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static spgroup.common.Util.isEmail;
 
 @Component
 public class FriendManagementService {
@@ -17,6 +19,10 @@ public class FriendManagementService {
     Logger logger = LoggerFactory.getLogger(FriendManagementService.class);
 
     Map<String, List<String>> friendsMap = new HashMap<>();
+
+    @Autowired
+    BlockEmailService blockEmailService;
+
 
     private void validateConnectFriendsData(String userEmail1, String userEmail2) {
         if(userEmail1 == null || userEmail2 == null) throw new  IllegalArgumentException("User email cannot be null");
@@ -34,6 +40,16 @@ public class FriendManagementService {
             return false;
         }
 
+        if(blockEmailService.blockEmail(userEmail1, userEmail2)) {
+            logger.info(userEmail1+" has blocked "+ userEmail2);
+            return false;
+        }
+
+        if(blockEmailService.blockEmail(userEmail2, userEmail1)) {
+            logger.info(userEmail2+" has blocked "+ userEmail1);
+            return false;
+        }
+
         //Add user data if absent
         friendsMap.putIfAbsent(userEmail1, new ArrayList<>());
         friendsMap.putIfAbsent(userEmail2, new ArrayList<>());
@@ -45,12 +61,7 @@ public class FriendManagementService {
         return true;
     }
 
-    private boolean isEmail(String email) {
-        String ePattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile(ePattern);
-        java.util.regex.Matcher m = p.matcher(email);
-        return m.matches();
-    }
+
 
     private void validateGetFriendEmailsData(String userEmail) {
         if(null == userEmail) throw new IllegalArgumentException("UserEmail cannot be null");
@@ -79,5 +90,8 @@ public class FriendManagementService {
         if(list1 == null || list2 == null) return null;
         return list1.stream().filter(list2::contains).collect(Collectors.toList());
     }
+
+
+
 
 }
